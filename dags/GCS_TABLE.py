@@ -8,6 +8,7 @@ default_args = {
 
 with DAG(
     dag_id="gcs_to_bigquery_load",
+    default_args=default_args,
     start_date=days_ago(1),
     schedule=None,
     catchup=False
@@ -15,26 +16,11 @@ with DAG(
 
     load_data = GCSToBigQueryOperator(
         task_id="load_csv_to_bq",
-
         bucket="your-bucket-name",
-
         source_objects=["customer/customer.csv"],
-
-        destination_project_dataset_table="de-project.sales.customer",
-
+        destination_project_dataset_table="bigquery7620.datasetddl.sales_data",
         source_format="CSV",
-
         skip_leading_rows=1,
-
         write_disposition="WRITE_TRUNCATE",
-
-        schema_fields=[
-            {"name": "customer_name", "type": "STRING"},
-            {"name": "customer_id", "type": "INTEGER"},
-            {"name": "quantity", "type": "NUMERIC"},
-            {"name": "salary", "type": "FLOAT"},
-            {"name": "created_at", "type": "TIMESTAMP"}
-        ]
+        autodetect=True
     )
-
-    load_data
