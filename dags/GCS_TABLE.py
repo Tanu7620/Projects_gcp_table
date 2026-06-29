@@ -10,7 +10,6 @@ default_args = {
 # read your sql file
 with open("/opt/airflow/dags/sql/load_data.sql", "r") as f:
     load_sql = f.read()
-# ↑ DAG reads your SQL file and runs it
 
 with DAG(
     dag_id="gcs_to_bigquery_load",
@@ -21,13 +20,13 @@ with DAG(
 ) as dag:
 
     # ----------------------------------------------------------
-    # TASK 1: Pull file from GCS → load into staging table
+    # TASK 1: Pull file from GCS and load directly into table
     # ----------------------------------------------------------
-    load_to_staging = GCSToBigQueryOperator(
-        task_id="load_csv_to_staging",
-        bucket="your-bucket-name",
-        source_objects=["customer/customer.csv"],
-        destination_project_dataset_table="bigquery7620.datasetddl.staging_sales_data",
+    load_to_table = GCSToBigQueryOperator(
+        task_id="load_csv_to_bq",
+        bucket="your-bucket-name",                 # ← your GCS bucket
+        source_objects=["customer/customer.csv"],   # ← your CSV file
+        destination_project_dataset_table="bigquery7620.datasetddl.sales_data",
         source_format="CSV",
         skip_leading_rows=1,
         write_disposition="WRITE_TRUNCATE",
@@ -35,13 +34,13 @@ with DAG(
     )
 
     # ----------------------------------------------------------
-    # TASK 2: Run SQL → SAFE_CAST and INSERT INTO target table
+    # TASK 2: Run SQL for SAFE_CAST and lastingestiontime
     # ----------------------------------------------------------
-    load_to_target = BigQueryInsertJobOperator(
+    run_sql = BigQueryInsertJobOperator(
         task_id="safe_cast_and_insert",
         configuration={
             "query": {
-                "query": load_sql,       # ← runs your load_data.sql
+                "query": load_sql,
                 "useLegacySql": False
             }
         },
@@ -49,6 +48,6 @@ with DAG(
     )
 
     # ----------------------------------------------------------
-    # PIPELINE: staging → safe cast → target table
+    # PIPELINE: load file → run sql
     # ----------------------------------------------------------
-    load_to_staging >> load_to_target
+    load_to_table >> run_sql
