@@ -7,8 +7,7 @@ default_args = {
     "owner": "tanu"
 }
 
-# read your sql file
-with open("/opt/airflow/dags/sql/load_data.sql", "r") as f:
+with open("/opt/airflow/dags/sql/SQL_SCHEMA_CUSYOMERS.sql", "r") as f:
     load_sql = f.read()
 
 with DAG(
@@ -19,24 +18,20 @@ with DAG(
     catchup=False
 ) as dag:
 
-    # ----------------------------------------------------------
-    # TASK 1: Pull file from GCS and load directly into table
-    # ----------------------------------------------------------
-    load_to_table = GCSToBigQueryOperator(
-        task_id="load_csv_to_bq",
-        bucket="your-bucket-name",                 # ← your GCS bucket
-        source_objects=["customer/customer.csv"],   # ← your CSV file
-        destination_project_dataset_table="bigquery7620.datasetddl.sales_data",
+    # TASK 1 — Pull CSV from GCS into sales_data
+    load_to_staging = GCSToBigQueryOperator(
+        task_id="load_csv_to_staging",
+        bucket="your-bucket-name",
+        source_objects=["customer/customer.csv"],
+        destination_project_dataset_table="bigquery7620.datasetddl.staging_sales_data"
         source_format="CSV",
         skip_leading_rows=1,
         write_disposition="WRITE_TRUNCATE",
         autodetect=True
     )
 
-    # ----------------------------------------------------------
-    # TASK 2: Run SQL for SAFE_CAST and lastingestiontime
-    # ----------------------------------------------------------
-    run_sql = BigQueryInsertJobOperator(
+    # TASK 2 — SAFE_CAST, TRIM and INSERT into sales_data
+    load_to_target = BigQueryInsertJobOperator(
         task_id="safe_cast_and_insert",
         configuration={
             "query": {
@@ -47,7 +42,4 @@ with DAG(
         gcp_conn_id="google_cloud_default"
     )
 
-    # ----------------------------------------------------------
-    # PIPELINE: load file → run sql
-    # ----------------------------------------------------------
-    load_to_table >> run_sql
+    load_to_staging >> load_to_target
