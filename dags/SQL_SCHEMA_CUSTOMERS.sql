@@ -9,7 +9,7 @@ INSERT INTO `bigquery7620.datasetddl.sales_data`
 )
 
 SELECT
-    SAFE_CAST(customer_name  AS STRING)    AS customer_name,
+    trim(SAFE_CAST(customer_name  AS STRING))   AS customer_name,
     SAFE_CAST(customer_id    AS INT64)     AS customer_id,
     SAFE_CAST(quantity       AS NUMERIC)   AS quantity,
     SAFE_CAST(salary         AS FLOAT64)   AS salary,
