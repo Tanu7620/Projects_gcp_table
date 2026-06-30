@@ -23,7 +23,7 @@ with DAG(
         task_id="load_csv_to_staging",
         bucket="your-bucket-name",
         source_objects=["customer/customer.csv"],
-        destination_project_dataset_table="bigquery7620.datasetddl.staging_sales_data"
+        destination_project_dataset_table="bigquery7620.datasetddl.staging_sales_data",
         source_format="CSV",
         skip_leading_rows=1,
         write_disposition="WRITE_TRUNCATE",
