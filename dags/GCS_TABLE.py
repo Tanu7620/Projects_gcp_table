@@ -3,7 +3,7 @@ from airflow.providers.google.cloud.sensors.gcs import GCSObjectExistenceSensor
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 from airflow.utils.dates import days_ago
-from datetime import timedelta
+from datetime import timedelta , datetime
 
 default_args = {
     "owner": "tanu",
@@ -17,7 +17,7 @@ with open("/opt/airflow/dags/sql/SQL_SCHEMA_CUSYOMERS.sql", "r") as f:
 with DAG(
     dag_id="gcs_to_bigquery_load",
     default_args=default_args,
-    start_date=days_ago(1),
+    start_date=datetime.today() + timedelta(days=1),
     schedule=None,
     catchup=False
 ) as dag:
@@ -57,5 +57,5 @@ with DAG(
         gcp_conn_id="google_cloud_default"
     )
 
-    # PIPELINE ORDER
+    
     wait_for_file >> load_to_staging >> load_to_target
