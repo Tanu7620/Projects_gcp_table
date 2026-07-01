@@ -1,6 +1,6 @@
 
 
-INSERT INTO `bigquery7620.datasetddl.sales_data`
+INSERT INTO bigquery7620.Sales_customer_IN.SQL_SCHEMA_CUSTOMERS
 (
     customer_name,
     customer_id,
@@ -18,4 +18,4 @@ SELECT
     SAFE_CAST(created_at         AS TIMESTAMP) AS created_at,
     CURRENT_TIMESTAMP()                        AS lastingestiontime
 
-FROM `bigquery7620.datasetddl.staging_sales_data`;
+FROM bigquery7620.Sales_customer_IN.staging_sales_data
