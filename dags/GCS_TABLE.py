@@ -3,8 +3,13 @@ from airflow.providers.google.cloud.sensors.gcs import GCSObjectExistenceSensor
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 from airflow.utils.dates import days_ago
+from datetime import timedelta
 
-default_args = {"owner": "tanu"}
+default_args = {
+    "owner": "tanu",
+    "retries": 1,                              
+    "retry_delay": timedelta(minutes=5)        
+}
 
 with open("/opt/airflow/dags/sql/SQL_SCHEMA_CUSYOMERS.sql", "r") as f:
     load_sql = f.read()
