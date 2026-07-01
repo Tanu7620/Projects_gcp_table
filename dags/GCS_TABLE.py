@@ -36,7 +36,8 @@ with DAG(
         source_format="CSV",
         skip_leading_rows=1,
         write_disposition="WRITE_TRUNCATE",
-        autodetect=True
+        autodetect=True,
+        gcp_conn_id="google_cloud_default"
     )
     
   
