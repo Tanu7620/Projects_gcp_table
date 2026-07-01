@@ -1,11 +1,10 @@
 from airflow import DAG
+from airflow.providers.google.cloud.sensors.gcs import GCSObjectExistenceSensor
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 from airflow.utils.dates import days_ago
 
-default_args = {
-    "owner": "tanu"
-}
+default_args = {"owner": "tanu"}
 
 with open("/opt/airflow/dags/sql/SQL_SCHEMA_CUSYOMERS.sql", "r") as f:
     load_sql = f.read()
@@ -18,7 +17,17 @@ with DAG(
     catchup=False
 ) as dag:
 
-    # TASK 1 — Pull CSV from GCS into sales_data
+
+    wait_for_file = GCSObjectExistenceSensor(
+        task_id="wait_for_csv_file",
+        bucket="your-bucket-name",
+        object="customer/customer.csv",
+        gcp_conn_id="google_cloud_default",
+        timeout=300,
+        poke_interval=30
+    )
+
+    # TASK 1 — Pull file from GCS into staging
     load_to_staging = GCSToBigQueryOperator(
         task_id="load_csv_to_staging",
         bucket="your-bucket-name",
@@ -29,8 +38,8 @@ with DAG(
         write_disposition="WRITE_TRUNCATE",
         autodetect=True
     )
-
-    # TASK 2 — SAFE_CAST, TRIM and INSERT into sales_data
+    
+  
     load_to_target = BigQueryInsertJobOperator(
         task_id="safe_cast_and_insert",
         configuration={
@@ -42,4 +51,5 @@ with DAG(
         gcp_conn_id="google_cloud_default"
     )
 
-    load_to_staging >> load_to_target
+    # PIPELINE ORDER
+    wait_for_file >> load_to_staging >> load_to_target
